@@ -204,8 +204,31 @@ for (let i = 1; i <= 4; i++) {
 let currentPlanet = null;
 
 let laserSprite, enemyBulletSprite, missileSprite, enemyBulletSpriteGreen;
+let glowSpriteCore, glowSpriteEnemy, glowSpriteEnemyGreen, glowSpriteEnemyPurple, glowSpriteEnemyBlue;
 
 function preRenderAssets() {
+  // === GLOW SPRITES (FR-008) ===
+  const createGlowSprite = (innerColor, midColor, outerColor) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 50;
+    canvas.height = 50;
+    const ctx = canvas.getContext("2d");
+    let gradient = ctx.createRadialGradient(25, 25, 0, 25, 25, 25);
+    gradient.addColorStop(0, innerColor);
+    gradient.addColorStop(0.5, midColor);
+    gradient.addColorStop(1, outerColor);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 50, 50);
+    return canvas;
+  };
+
+  glowSpriteCore = createGlowSprite("rgba(0, 225, 255, 0.6)", "rgba(0, 100, 255, 0.2)", "rgba(0, 50, 255, 0)");
+  glowSpriteEnemy = createGlowSprite("rgba(255, 100, 0, 0.6)", "rgba(255, 50, 0, 0.2)", "rgba(255, 0, 0, 0)");
+  glowSpriteEnemyGreen = createGlowSprite("rgba(0, 255, 0, 0.6)", "rgba(0, 204, 0, 0.2)", "rgba(0, 255, 0, 0)");
+  glowSpriteEnemyPurple = createGlowSprite("rgba(170, 0, 255, 0.6)", "rgba(170, 0, 255, 0.2)", "rgba(170, 0, 255, 0)");
+  glowSpriteEnemyBlue = createGlowSprite("rgba(0, 136, 255, 0.6)", "rgba(0, 136, 255, 0.2)", "rgba(0, 136, 255, 0)");
+
+
   const lPad = 20;
   const lW = 13 + lPad * 2;
   const lH = 4 + lPad * 2;
@@ -299,8 +322,16 @@ window.onload = async function () {
   init();
 };
 
+var playerLaserPool = null;
+var enemyBulletPool = null;
+var particlePool = null;
+
 function init() {
   preRenderAssets();
+  playerLaserPool = new ObjectPool(() => new LaserBullet(), 200);
+  enemyBulletPool = new ObjectPool(() => new EnemyBullet(), 1000);
+  particlePool = new ObjectPool(() => new Particle(), 2000);
+
   c = document.getElementById("canvas");
 
   ctx = c.getContext("2d", { alpha: false });
@@ -459,14 +490,14 @@ function fireBullet() {
   }
 
   // === DEFAULT: Always fire 2 parallel bullets (stacked vertically) ===
-  missilesArray.push(new LaserBullet(fireX, fireY - 8, baseAngle));  // Top bullet
-  missilesArray.push(new LaserBullet(fireX, fireY + 8, baseAngle));  // Bottom bullet
+  missilesArray.push(playerLaserPool.get(fireX, fireY - 8, baseAngle));  // Top bullet
+  missilesArray.push(playerLaserPool.get(fireX, fireY + 8, baseAngle));  // Bottom bullet
 
   // === LASER POWER-UP: Add angled spread bullets ===
   if (player1.doubleLaserTimer > 0) {
     const spreadAngle = 0.6; // ~35 degrees in radians
-    missilesArray.push(new LaserBullet(fireX, fireY - 5, -spreadAngle + baseAngle)); // Angled up
-    missilesArray.push(new LaserBullet(fireX, fireY + 5, spreadAngle + baseAngle));  // Angled down
+    missilesArray.push(playerLaserPool.get(fireX, fireY - 5, -spreadAngle + baseAngle)); // Angled up
+    missilesArray.push(playerLaserPool.get(fireX, fireY + 5, spreadAngle + baseAngle));  // Angled down
   }
 
   // Use pooled audio instead of cloneNode (much better performance during rapid fire)
@@ -888,7 +919,7 @@ const bombSystem = {
       if (b.x + b.width > beamLeft && b.x < beamRight) {
         createParticles(b.x + b.width / 2, b.y + b.height / 2, 5, "#ffff00"); // Yellow particles
         player1.score += 5; // +5 points per cancelled bullet!
-        enemyBulletsArray.splice(i, 1);
+        { let ___eb = enemyBulletsArray.splice(i, 1)[0]; enemyBulletPool.recycle(___eb); }
       }
     }
 
@@ -1285,7 +1316,7 @@ function drawGame() {
               const angle = (b / bulletCount) * Math.PI * 2 + spiralOffset;
               const targetX = centerX + Math.cos(angle) * 500;
               const targetY = centerY + Math.sin(angle) * 500;
-              let bullet = new EnemyBullet(centerX, centerY, targetX, targetY, "green");
+              let bullet = enemyBulletPool.get(centerX, centerY, targetX, targetY, "green");
               bullet.vx *= 0.5;
               bullet.vy *= 0.5;
               enemyBulletsArray.push(bullet);
@@ -1307,7 +1338,7 @@ function drawGame() {
                 bulletType = Math.random() < 0.5 ? "purple" : "blue";
               }
 
-              enemyBulletsArray.push(new EnemyBullet(ex, ey, px, py, bulletType));
+              enemyBulletsArray.push(enemyBulletPool.get(ex, ey, px, py, bulletType));
             }
           }
         }
@@ -1356,7 +1387,7 @@ function drawGame() {
             5,
             "#ff9900"
           );
-          missilesArray.splice(i, 1);
+          { let ___b = missilesArray.splice(i, 1)[0]; playerLaserPool.recycle(___b); }
           hit = true;
 
           // Hit effect for MiniBoss
@@ -1398,7 +1429,7 @@ function drawGame() {
                   const angle = Math.random() * Math.PI * 2;
                   const targetX = cx + Math.cos(angle) * 300;
                   const targetY = cy + Math.sin(angle) * 300;
-                  let scatterBullet = new EnemyBullet(cx, cy, targetX, targetY);
+                  let scatterBullet = enemyBulletPool.get(cx, cy, targetX, targetY);
                   scatterBullet.vx *= 0.3; // Very slow (30% speed)
                   scatterBullet.vy *= 0.3;
                   enemyBulletsArray.push(scatterBullet);
@@ -1418,7 +1449,7 @@ function drawGame() {
 
       // Remove bullets that go off-screen (including angled shots)
       if (m.x > canvasWidth + 50 || m.y < -50 || m.y > worldHeight + 50) {
-        missilesArray.splice(i, 1);
+        { let ___b = missilesArray.splice(i, 1)[0]; playerLaserPool.recycle(___b); }
         i--;
       }
     }
@@ -1476,7 +1507,7 @@ function drawGame() {
                   const angle = Math.random() * Math.PI * 2;
                   const targetX = cx + Math.cos(angle) * 300;
                   const targetY = cy + Math.sin(angle) * 300;
-                  let scatterBullet = new EnemyBullet(cx, cy, targetX, targetY);
+                  let scatterBullet = enemyBulletPool.get(cx, cy, targetX, targetY);
                   scatterBullet.vx *= 0.3;
                   scatterBullet.vy *= 0.3;
                   enemyBulletsArray.push(scatterBullet);
@@ -1526,7 +1557,7 @@ function drawGame() {
           12,
           "#ff3300"
         );
-        enemyBulletsArray.splice(i, 1);
+        { let ___eb = enemyBulletsArray.splice(i, 1)[0]; enemyBulletPool.recycle(___eb); }
         i--;
         handlePlayerHit();
         continue;
@@ -1562,7 +1593,7 @@ function drawGame() {
         b.y + b.height < -100 ||
         b.y > worldHeight + 100
       ) {
-        enemyBulletsArray.splice(i, 1);
+        { let ___eb = enemyBulletsArray.splice(i, 1)[0]; enemyBulletPool.recycle(___eb); }
         i--;
       }
     }
@@ -1961,8 +1992,49 @@ function updateCamera() {
   cameraY += (clamped - cameraY) * 0.1;
 }
 
+class ObjectPool {
+  constructor(createFn, initialSize) {
+    this.pool = [];
+    this.createFn = createFn;
+    for (let i = 0; i < initialSize; i++) {
+      let obj = createFn();
+      obj.active = false;
+      this.pool.push(obj);
+    }
+  }
+
+  get(...args) {
+    let obj;
+    if (this.pool.length > 0) {
+      obj = this.pool.pop();
+    } else {
+      obj = this.createFn();
+    }
+    obj.spawn(...args);
+    return obj;
+  }
+
+  recycle(obj) {
+    obj.active = false;
+    this.pool.push(obj);
+  }
+}
+
 class LaserBullet {
-  constructor(x, y, angle = 0) {
+  constructor() {
+    this.x = 0;
+    this.y = 0;
+    this.width = 13;
+    this.height = 4;
+    this.speed = 16;
+    this.angle = 0;
+    this.isPlasma = false;
+    this.vx = 0;
+    this.vy = 0;
+    this.active = false;
+  }
+
+  spawn(x, y, angle = 0) {
     this.x = x;
     this.y = y;
     this.width = 13;
@@ -1978,6 +2050,7 @@ class LaserBullet {
     // Calculate velocity components based on angle
     this.vx = Math.cos(angle) * this.speed;
     this.vy = Math.sin(angle) * this.speed;
+    this.active = true;
   }
 
   getHitbox() {
@@ -1987,6 +2060,12 @@ class LaserBullet {
   draw() {
     const padding = 20;
     ctx.save();
+
+    if (typeof gameSettings === 'undefined' || gameSettings.bloomEnabled !== false) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.drawImage(glowSpriteCore, this.x + this.width / 2 - 25, this.y + this.height / 2 - 25);
+      ctx.globalCompositeOperation = 'source-over';
+    }
 
     // === SURGE OVERHEAT: PLASMA BULLET VISUAL ===
     if (this.isPlasma) {
@@ -3171,6 +3250,9 @@ class BigExplosion {
       const flashRadius = (50 + 100 * flashProgress) * this.scale;
       ctx.save();
       ctx.globalAlpha = 1 - flashProgress;
+      if (typeof gameSettings === 'undefined' || gameSettings.bloomEnabled !== false) {
+        ctx.globalCompositeOperation = 'lighter';
+      }
       let gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, flashRadius);
       gradient.addColorStop(0, "#ffffff");
       gradient.addColorStop(0.3, "#ffff00");
@@ -3234,7 +3316,18 @@ class BigExplosion {
 let bigExplosions = [];
 
 class EnemyBullet {
-  constructor(x, y, targetX, targetY, colorType = "default") {
+  constructor() {
+    this.x = 0;
+    this.y = 0;
+    this.width = 10;
+    this.height = 4;
+    this.colorType = "default";
+    this.vx = 0;
+    this.vy = 0;
+    this.active = false;
+  }
+
+  spawn(x, y, targetX, targetY, colorType = "default") {
     this.x = x;
     this.y = y;
     this.width = 10;
@@ -3249,6 +3342,7 @@ class EnemyBullet {
 
     this.vx = (dx / len) * speed;
     this.vy = (dy / len) * speed;
+    this.active = true;
   }
 
   getHitbox() {
@@ -3263,6 +3357,21 @@ class EnemyBullet {
 
   draw() {
     ctx.save();
+
+    let glowSprite = glowSpriteEnemy;
+    if (this.colorType === "green" || this.colorType === true) {
+      glowSprite = glowSpriteEnemyGreen;
+    } else if (this.colorType === "purple") {
+      glowSprite = glowSpriteEnemyPurple;
+    } else if (this.colorType === "blue") {
+      glowSprite = glowSpriteEnemyBlue;
+    }
+
+    if (typeof gameSettings === 'undefined' || gameSettings.bloomEnabled !== false) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.drawImage(glowSprite, this.x - 25, this.y - 25);
+      ctx.globalCompositeOperation = 'source-over';
+    }
 
     // Choose Colors
     let glowColor, fillColor;
@@ -3721,7 +3830,19 @@ function useAbility() {
 
 
 class Particle {
-  constructor(x, y, color) {
+  constructor() {
+    this.x = 0;
+    this.y = 0;
+    this.vx = 0;
+    this.vy = 0;
+    this.life = 0;
+    this.maxLife = 30;
+    this.color = "#fff";
+    this.size = 2;
+    this.active = false;
+  }
+
+  spawn(x, y, color) {
     this.x = x;
     this.y = y;
     this.vx = (Math.random() - 0.5) * 8;
@@ -3730,6 +3851,7 @@ class Particle {
     this.maxLife = 30;
     this.color = color;
     this.size = Math.random() * 3 + 2;
+    this.active = true;
   }
 
   update() {
@@ -3744,7 +3866,9 @@ class Particle {
     const alpha = this.life / this.maxLife;
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.globalCompositeOperation = "lighter"; // Additive blending for "Bloom"
+    if (typeof gameSettings === 'undefined' || gameSettings.bloomEnabled !== false) {
+      ctx.globalCompositeOperation = "lighter"; // Additive blending for "Bloom"
+    }
     ctx.fillStyle = this.color;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -3759,7 +3883,7 @@ class Particle {
 
 function createParticles(x, y, count, color) {
   for (let i = 0; i < count; i++) {
-    particles.push(new Particle(x, y, color));
+    particles.push(particlePool.get(x, y, color));
   }
 }
 
@@ -3767,7 +3891,7 @@ function updateParticles() {
   for (let i = particles.length - 1; i >= 0; i--) {
     particles[i].update();
     if (particles[i].isDead) {
-      particles.splice(i, 1);
+      { let ___p = particles.splice(i, 1)[0]; particlePool.recycle(___p); }
     }
   }
 }
@@ -3822,6 +3946,9 @@ class Explosion {
     let radius = (20 + 60 * progress) * this.scale;
     ctx.save();
     ctx.globalAlpha = 1 - progress;
+    if (typeof gameSettings === 'undefined' || gameSettings.bloomEnabled !== false) {
+      ctx.globalCompositeOperation = 'lighter';
+    }
     let gradient = ctx.createRadialGradient(
       this.x,
       this.y,
