@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space ODYSSEY</title>
+  <link rel="stylesheet" href="Style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="3d-menu-loader.js"></script>
+</head>
+
+<body>
+  <!-- Autoplay Unlock Overlay -->
+  <div id="autoplayOverlay">
+    <div class="overlay-content">
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring delay-1"></div>
+      <div class="pulse-ring delay-2"></div>
+      <p class="overlay-subtext">PRESS ANY KEY TO START</p>
+    </div>
+  </div>
+
+  <div id="mainMenu">
+    <div class="scrolling-bg-container">
+      <div class="bg-tile"></div>
+      <div class="bg-tile flipped"></div>
+      <div class="bg-tile"></div>
+    </div>
+
+    <!-- Left Panel (Reserved for future content) -->
+    <div class="menu-left-panel" id="modelContainer">
+    </div>
+
+    <!-- Right Panel (Angled Menu) -->
+    <div class="menu-right-panel">
+      <div class="menu-content-angled">
+        <h1 class="main-title">SPACE<br>ODYSSEY</h1>
+
+        <div class="menu-buttons-angled">
+          <button class="menu-btn-angled" id="startBtn">
+            <span class="btn-text">START GAME</span>
+          </button>
+
+          <button class="menu-btn-angled" id="optionBtn">
+            <span class="btn-text">OPTIONS</span>
+          </button>
+
+          <button class="menu-btn-angled" id="exitBtn">
+            <span class="btn-text">HOW TO PLAY</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fullscreen Button (Bottom Left) -->
+    <div id="fullscreenBtn" title="Toggle Fullscreen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+      </svg>
+    </div>
+  </div>
+
+  <div id="optionsMenu" style="display: none;">
+    <div class="menu-content">
+      <h2 class="options-title">OPTIONS</h2>
+
+      <div class="options-container">
+        <div class="option-item">
+          <label>Music</label>
+          <div class="button-group">
+            <button class="toggle-btn active" data-music="on">ENABLE</button>
+            <button class="toggle-btn" data-music="off">DISABLE</button>
+          </div>
+        </div>
+
+        <div class="option-item">
+          <label>Sound Effects</label>
+          <div class="button-group">
+            <button class="toggle-btn active" data-sfx="on">ENABLE</button>
+            <button class="toggle-btn" data-sfx="off">DISABLE</button>
+          </div>
+        </div>
+
+        <div class="option-item">
+          <label>Controls</label>
+          <div class="button-group">
+            <button class="toggle-btn active" data-control="keyboard">KEYBOARD</button>
+            <button class="toggle-btn" data-control="mouse">MOUSE</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="menu-btn back-btn" id="backBtn">
+        <span class="btn-icon">←</span>
+        <span class="btn-text">BACK</span>
+      </button>
+    </div>
+  </div>
+
+
+
+  <div id="howToPlayMenu" style="display: none;">
+    <div class="menu-content" style="min-width: 800px; max-width: 900px;">
+      <h2 class="options-title">HOW TO PLAY</h2>
+
+      <div class="howtoplay-container">
+        <div class="howtoplay-section">
+          <h3 class="section-title">CONTROLS</h3>
+          <div class="control-guide" id="controlGuide">
+            <!-- Content dynamically generated in Script.js -->
+            <div class="control-item">
+              <span class="control-key">WASD / Arrow Keys</span>
+              <span class="control-desc">Move Your Ship</span>
+            </div>
+            <div class="control-item">
+              <span class="control-key">SPACE</span>
+              <span class="control-desc">Fire (Keyboard Mode) / Bomb (Mouse Mode)</span>
+            </div>
+            <div class="control-item">
+              <span class="control-key">SHIFT</span>
+              <span class="control-desc">Activate Bomb Ability</span>
+            </div>
+            <div class="control-item">
+              <span class="control-key">Q / Right Click</span>
+              <span class="control-desc">Fire Missile</span>
+            </div>
+            <div class="control-item">
+              <span class="control-key">P</span>
+              <span class="control-desc">Pause Game</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="howtoplay-section">
+          <h3 class="section-title">ABILITIES</h3>
+          <div class="ability-guide">
+            <div class="ability-item">
+              <div class="ability-header">
+                <img src="img/Skills/bomb.png" alt="Bomb" class="ability-icon">
+                <span class="ability-name">Extinction Forcefield (Bomb)</span>
+              </div>
+              <p class="ability-desc">Ultimate spell bomb, destroys everything in your path. Use it wisely.</p>
+            </div>
+            <div class="ability-item">
+              <div class="ability-header">
+                <img src="img/Skills/missile.png" alt="Missile" class="ability-icon">
+                <span class="ability-name">Homing Missiles</span>
+              </div>
+              <p class="ability-desc">Lock-on missiles that track and destroy enemies.</p>
+            </div>
+            <div class="ability-item">
+              <div class="ability-header">
+                <img src="img/Skills/double-missile.png" alt="Double Laser" class="ability-icon">
+                <span class="ability-name">Triangulation Laser</span>
+              </div>
+              <p class="ability-desc">Temporary powerup that adds angled spread shots to your main weapon for more
+                range.</p>
+            </div>
+            <div class="ability-item">
+              <div class="ability-header">
+                <img src="img/Player/lives.png" alt="Extra Life" class="ability-icon">
+                <span class="ability-name">Extra Life</span>
+              </div>
+              <p class="ability-desc">Rare pickup that grants an additional life. Drops occasionally from MiniBoss
+                enemies.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="howtoplay-section cheat-section">
+          <h3 class="section-title" style="color: #ff006e;">CHEAT CODES</h3>
+          <p class="surge-desc" style="font-style: italic; opacity: 0.8;">
+            For testing and experimentation, but also for you to have fun:
+          </p>
+          <div class="cheat-guide">
+            <div class="cheat-item">
+              <span class="cheat-key">1</span>
+              <span class="cheat-desc">Add 10 Bombs</span>
+            </div>
+            <div class="cheat-item">
+              <span class="cheat-key">2</span>
+              <span class="cheat-desc">Add 30 Missiles</span>
+            </div>
+            <div class="cheat-item">
+              <span class="cheat-key">3</span>
+              <span class="cheat-desc">Trigger Surge Event</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="menu-btn back-btn" id="htpBackBtn">
+        <span class="btn-icon">←</span>
+        <span class="btn-text">BACK</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="gameContainer" style="display: none;">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <script>
+    // Add cache buster to scripts dynamically
+    const v = Date.now();
+    document.write('<script src="AudioManager.js?v=' + v + '"><\/script>');
+    document.write('<script src="Script.js?v=' + v + '"><\/script>');
+  </script>
+</body>
+
+</html>
