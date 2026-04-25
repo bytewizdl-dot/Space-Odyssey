@@ -1,19 +1,30 @@
 
 // === GAME SETTINGS (Global State) ===
 const gameSettings = {
-  musicEnabled: true,
-  sfxEnabled: true,
+  musicVolume: 100,
+  sfxVolume: 100,
   inputMode: 'keyboard'
 };
+
+Object.defineProperty(gameSettings, 'musicEnabled', {
+  get: function() { return this.musicVolume > 0; }
+});
+Object.defineProperty(gameSettings, 'sfxEnabled', {
+  get: function() { return this.sfxVolume > 0; }
+});
 
 // Load Settings from LocalStorage immediately
 try {
   const saved = localStorage.getItem('blockShooterSettings');
   if (saved) {
     const parsed = JSON.parse(saved);
-    gameSettings.musicEnabled = parsed.musicEnabled;
-    gameSettings.sfxEnabled = parsed.sfxEnabled;
-    gameSettings.inputMode = parsed.inputMode;
+    if(parsed.musicVolume !== undefined) gameSettings.musicVolume = parsed.musicVolume;
+    else if (parsed.musicEnabled !== undefined) gameSettings.musicVolume = parsed.musicEnabled ? 100 : 0;
+    
+    if(parsed.sfxVolume !== undefined) gameSettings.sfxVolume = parsed.sfxVolume;
+    else if (parsed.sfxEnabled !== undefined) gameSettings.sfxVolume = parsed.sfxEnabled ? 100 : 0;
+    
+    gameSettings.inputMode = parsed.inputMode || 'keyboard';
   }
 } catch (e) {
   console.log("Could not load settings:", e);
@@ -28,7 +39,7 @@ try {
 // ============================================================================
 
 // === BGM CONFIGURATION ===
-const BGM_VOLUME = 0.34;
+const BGM_VOLUME = 0.4;
 
 const bgmList = [
   { normal: "music/Scary.mp3", gameover: "music/ScaryGO.mp3" },
@@ -56,7 +67,7 @@ laser.src = "music/sfx/laser2.mp3";
 
 var bombGetSound = document.createElement("audio");
 bombGetSound.src = "music/sfx/bomb-get.mp3";
-bombGetSound.volume = 0.1; // Baseline volume
+bombGetSound.volume = 0.07; // Baseline volume
 
 var missileGetSound = document.createElement("audio");
 missileGetSound.src = "music/sfx/missile-get.mp3";
@@ -68,7 +79,7 @@ weaponGetSound.volume = 0.25; // Baseline
 
 var playerDeadSound = document.createElement("audio");
 playerDeadSound.src = "music/sfx/DEFEATED.wav";
-playerDeadSound.volume = 0.375; // Increased by 50% (was 0.25)
+playerDeadSound.volume = 0.5; // Increased by 50% (was 0.25)
 
 var miniBossDeadSound = document.createElement("audio");
 miniBossDeadSound.src = "music/sfx/playerdeadlol.mp3";
@@ -86,7 +97,7 @@ warningSound.volume = 1.0; // CRITICAL EVENT: Keep at max
 
 var bombHitSound = document.createElement("audio");
 bombHitSound.src = "music/sfx/BombHIT.wav";
-bombHitSound.volume = 0.5; // Mid-tier (was 0.5)
+bombHitSound.volume = 0.65; // Mid-tier (was 0.5)
 
 // CRITICAL EVENT: Maximum impact!
 var bombSoundMerged = document.createElement("audio");
@@ -110,7 +121,7 @@ var surgeMusicTimer = 0; // For the 1.5s delay
 var savedBgmTime = 0; // To pause/resume BGM
 
 // ============================================================================
-// === PROFESSIONAL AUDIO MIXER SYSTEM (Touhou-Style) ===
+// === PROFESSIONAL AUDIO MIXER SYSTEM ===
 // ============================================================================
 // Solves audio performance issues during chaos events (surge, bombs, etc.)
 // Key Features:
@@ -249,7 +260,7 @@ const AudioMixer = {
     // Critical sounds bypass all limits but reuse pooled Audio objects
     if (category === 'critical') {
       const sfx = this._getCriticalAudio(src);
-      sfx.volume = Math.max(0, Math.min(1, volume));
+      sfx.volume = Math.max(0, Math.min(1, volume)) * (gameSettings.sfxVolume / 100);
       sfx.play().catch(() => { });
       return true;
     }
@@ -283,7 +294,7 @@ const AudioMixer = {
     } else {
       // Fallback for non-pooled sounds
       const sfx = new Audio(src);
-      sfx.volume = Math.max(0, Math.min(1, volume));
+      sfx.volume = Math.max(0, Math.min(1, volume)) * (gameSettings.sfxVolume / 100);
       sfx.play().catch(() => { });
     }
 
@@ -303,7 +314,7 @@ const AudioMixer = {
     for (let i = 0; i < runCount; i++) {
       const channel = pool.channels[pool.idx];
       channel.audio.currentTime = 0;
-      channel.audio.volume = Math.max(0, Math.min(1, volume));
+      channel.audio.volume = Math.max(0, Math.min(1, volume)) * (gameSettings.sfxVolume / 100);
 
       // Flaw #3 Fix: Track active voices via onended callback
       this.activeVoices[category]++;
@@ -417,7 +428,7 @@ function playSfxWithVolume(srcPath, volume) {
   } else {
     // Generic sounds - create new Audio (for infrequent sounds this is fine)
     const sfx = new Audio(srcPath);
-    sfx.volume = Math.max(0, Math.min(1, volume));
+    sfx.volume = Math.max(0, Math.min(1, volume)) * (gameSettings.sfxVolume / 100);
     sfx.play().catch(() => { });
   }
 }
@@ -468,7 +479,7 @@ class SoundPool {
     // Play from pool
     let sfx = this.pool[this.idx];
     sfx.currentTime = 0;
-    sfx.volume = Math.max(0, Math.min(1, volume));
+    sfx.volume = Math.max(0, Math.min(1, volume)) * (gameSettings.sfxVolume / 100);
     sfx.play().catch(() => { });
 
     this.idx = (this.idx + 1) % this.pool.length;
@@ -531,7 +542,7 @@ menuClickSound.src = 'music/sfx/bomb-get.mp3';
 // === PLAY SOUND HELPER (GAMEPLAY) ===
 function playSound(audio, volume = 0.5) {
   if (gameSettings.sfxEnabled) {
-    audio.volume = volume; // Uses custom volume if provided, otherwise defaults to 0.5
+    audio.volume = volume * (gameSettings.sfxVolume / 100);
     audio.currentTime = 0;
     audio.play().catch(() => { });
   }
@@ -542,7 +553,7 @@ function playMenuSound(audio) {
   if (gameSettings.sfxEnabled) {
     // Clone node allows overlapping sounds
     let sfx = audio.cloneNode();
-    sfx.volume = 0.4; // Max volume for menu
+    sfx.volume = 0.4 * (gameSettings.sfxVolume / 100);
     sfx.play().catch(() => { });
   }
 }
@@ -592,7 +603,7 @@ function crossfadeToGameOver() {
     currentBGM.volume = newCurrentVol;
 
     let newGameOverVol = gameOverBGM.volume + fadeSpeed;
-    if (newGameOverVol > BGM_VOLUME) newGameOverVol = BGM_VOLUME;
+    if (newGameOverVol > BGM_VOLUME * (gameSettings.musicVolume / 100)) newGameOverVol = BGM_VOLUME * (gameSettings.musicVolume / 100);
     gameOverBGM.volume = newGameOverVol;
 
     // Flaw #5 Fix: Epsilon comparison prevents floating-point infinite loop
@@ -609,7 +620,7 @@ function applySettings() {
   // Apply Main Menu BGM
   if (typeof mainMenuBGM !== 'undefined') {
     if (gameSettings.musicEnabled) {
-      mainMenuBGM.volume = 0.25;
+      mainMenuBGM.volume = 0.25 * (gameSettings.musicVolume / 100);
       if (!gameStarted) {
         mainMenuBGM.play().catch(() => { });
       }
@@ -621,9 +632,14 @@ function applySettings() {
   // Apply Gameplay BGM
   if (typeof currentBGM !== 'undefined') {
     if (gameSettings.musicEnabled) {
-      currentBGM.volume = BGM_VOLUME;
+      currentBGM.volume = BGM_VOLUME * (gameSettings.musicVolume / 100);
       if (gameStarted && !game.gameOver) {
-        currentBGM.play().catch(() => { });
+        // Only play if not paused
+        if (typeof gamePaused === 'undefined' || !gamePaused) {
+          currentBGM.play().catch(() => { });
+        } else {
+          currentBGM.pause();
+        }
       }
     } else {
       currentBGM.volume = 0;
@@ -634,7 +650,7 @@ function applySettings() {
   // Apply Game Over BGM
   if (typeof gameOverBGM !== 'undefined') {
     if (gameSettings.musicEnabled) {
-      gameOverBGM.volume = BGM_VOLUME;
+      gameOverBGM.volume = BGM_VOLUME * (gameSettings.musicVolume / 100);
       if (gameStarted && game.gameOver) {
         gameOverBGM.play().catch(() => { });
       }

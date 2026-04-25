@@ -22,12 +22,12 @@ function init3DMenu() {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        color: #00eaff;
+        color: #C9A04A;
         font-family: 'Orbitron', sans-serif;
         font-size: 20px;
         text-align: center;
         z-index: 100;
-        text-shadow: 0 0 10px #00eaff;
+        text-shadow: 0 0 10px #C9A04A;
         pointer-events: none;
     `;
   loadingDiv.innerHTML = 'INITIALIZING SYSTEM...<br><span style="font-size: 14px;">0%</span>';
@@ -62,7 +62,7 @@ function init3DMenu() {
   dirLight.position.set(5, 10, 7);
   scene.add(dirLight);
 
-  const blueLight = new THREE.PointLight(0x00eaff, 3, 20);
+  const blueLight = new THREE.PointLight(0xC9A04A, 3, 20);
   blueLight.position.set(-2, 2, 2);
   scene.add(blueLight);
 
