@@ -323,6 +323,22 @@ body {
   }
 }
 
+/* === MENU WATERMARK === */
+.menu-watermark {
+  position: absolute;
+  bottom: 35px; /* Aligned vertically with button center */
+  left: 280px; /* Positioned to the right of the Fullscreen tooltip area */
+  color: #C9A04A;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  opacity: 0.6;
+  z-index: 10002;
+  pointer-events: none;
+  font-weight: 300;
+}
+
 /* === 6-LAYER HYPER PARALLAX STAR SYSTEM === */
 /* All layers driven by CSS custom properties: --speed, --opacity, --scale */
 

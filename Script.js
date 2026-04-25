@@ -1749,7 +1749,7 @@ class PlayerObject {
     this.friction = 0.92;
     this.maxSpeed = 10;
 
-    this.lives = 1;
+    this.lives = 4;
     this.score = 0;
     this.health = 100;
     this.invincible = 0;
@@ -1942,7 +1942,7 @@ function handlePlayerHit() {
       game.endingSequence = true;
       game.endingTimer = 0;
       game.endingStartTime = Date.now(); // Start real-time clock
-      document.body.style.cursor = 'auto'; 
+      document.body.style.cursor = 'auto';
     }
     player1.dead = true; // Ensure ship disappears/explodes
     return;
@@ -4821,7 +4821,7 @@ if (pauseMainMenuBtn) {
 if (pauseRestartBtn) {
   pauseRestartBtn.addEventListener('click', () => {
     if (gameSettings.sfxEnabled) playMenuSound(menuClickSound);
-    
+
     // 1. Create a quick fade-to-black overlay
     const restartFade = document.createElement('div');
     restartFade.style.cssText = `
@@ -4843,19 +4843,19 @@ if (pauseRestartBtn) {
     // 4. After fade in, reset and restart
     setTimeout(() => {
       document.getElementById('pauseMenuOverlay').style.display = 'none';
-      
+
       // We manually reset instead of calling returnToMenu() to avoid triggering the Main Menu BGM
       // Reset game state
       currentBGM.pause();
       gameOverBGM.pause();
       currentBGM.currentTime = 0;
       gameOverBGM.currentTime = 0;
-      
+
       game.gameOver = false;
       game.endingSequence = false;
       game.endingStartTime = 0;
       triggerOnce = false;
-      
+
       game.frames = 0;
       game.level = 1;
       game.speed = 1;
@@ -4881,18 +4881,18 @@ if (pauseRestartBtn) {
       missileAmmo = 0;
       cameraY = 0;
       gamePaused = false;
-      
+
       // Ensure we stay in game view
       mainMenu.style.display = 'none';
       gameContainer.style.display = 'block';
       document.body.style.cursor = 'none';
-      
+
       gameStarted = true;
       pickRandomBGM();
-      
+
       // Re-apply settings (this will set volume and play the new currentBGM if enabled)
       applySettings();
-      
+
       requestAnimationFrame(gameLoop);
 
       // 5. Fade back out and clean up
