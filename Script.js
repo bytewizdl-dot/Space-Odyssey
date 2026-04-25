@@ -391,36 +391,7 @@ function gameLoop(timestamp) {
       // PAUSED STATE - Draw frozen game underneath
       clearGame();
       drawGame();
-
-      // Update Fade Animation (Approx 90fps)
-      if (pauseFadeState === 'in') {
-        pauseFadeTimer += 1 / 90;
-        if (pauseFadeTimer >= 1) {
-          pauseFadeTimer = 1;
-          pauseFadeState = 'active';
-        }
-      } else if (pauseFadeState === 'out') {
-        pauseFadeTimer += (1 / 90) / 0.3; // 0.3s duration (Fast)
-        if (pauseFadeTimer >= 1) {
-          // RESUME COMPLETE
-          gamePaused = false;
-          pauseFadeState = 'none';
-
-          // Resume Audio & Cursor
-          if (!musicMuted && audioStarted) {
-            if (typeof isNormalBgmAllowed === 'function' && isNormalBgmAllowed()) {
-              currentBGM.play().catch(() => { });
-            }
-            if (typeof currentSurgeMusic !== 'undefined' && currentSurgeMusic !== null && typeof currentSurgeMusic !== 'string') {
-              currentSurgeMusic.play().catch(() => { });
-            }
-            lastFrameTime = performance.now ? performance.now() : Date.now();
-            document.body.style.cursor = 'none';
-          }
-        }
-      }
-
-      if (gamePaused) drawPauseOverlay();
+      drawPauseOverlay();
     }
 
     // Draw Surge Warning Overlay on top of everything (even pause if desired, but below pause overlay usually)
@@ -3889,6 +3860,7 @@ function maybeSpawnAbilityToken() {
 
 function useAbility() {
   if (bombCooldown > 0) return false;
+  if (abilityCharges <= 0) return false; // Safety check
 
   // DIRECT TRIGGER (Redundancy Check)
   spellBombAnimation.activate();
@@ -4525,7 +4497,12 @@ function togglePause() {
   // If currently Paused, Resume it
   else {
     gamePaused = false;
+    pauseFadeState = 'none'; // Reset transition state
+    lastFrameTime = performance.now ? performance.now() : Date.now(); // Sync timer
+    
     document.body.style.cursor = 'none';
+    window.focus(); // Ensure game captures input
+    
     if (gameSettings.musicEnabled) {
       if (typeof isNormalBgmAllowed === 'function' && isNormalBgmAllowed()) {
         currentBGM.play().catch(() => { });
@@ -4877,7 +4854,7 @@ if (pauseRestartBtn) {
       damageFlash = 0;
       currentWave = null;
       waveCooldown = 0;
-      abilityCharges = 0;
+      abilityCharges = 1;
       missileAmmo = 0;
       cameraY = 0;
       gamePaused = false;
@@ -4989,7 +4966,7 @@ function returnToMenu() {
   damageFlash = 0;
   currentWave = null;
   waveCooldown = 0;
-  abilityCharges = 0;
+  abilityCharges = 1;
   missileAmmo = 0;
   cameraY = 0;
   gameStarted = false;
