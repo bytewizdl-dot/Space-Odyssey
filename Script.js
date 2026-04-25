@@ -408,7 +408,12 @@ function gameLoop(timestamp) {
 
           // Resume Audio & Cursor
           if (!musicMuted && audioStarted) {
-            currentBGM.play().catch(() => { });
+            if (typeof isNormalBgmAllowed === 'function' && isNormalBgmAllowed()) {
+              currentBGM.play().catch(() => { });
+            }
+            if (typeof currentSurgeMusic !== 'undefined' && currentSurgeMusic !== null && typeof currentSurgeMusic !== 'string') {
+              currentSurgeMusic.play().catch(() => { });
+            }
             lastFrameTime = performance.now ? performance.now() : Date.now();
             document.body.style.cursor = 'none';
           }
@@ -4508,6 +4513,9 @@ function togglePause() {
   if (!gamePaused) {
     gamePaused = true;
     currentBGM.pause();
+    if (typeof currentSurgeMusic !== 'undefined' && currentSurgeMusic !== null && typeof currentSurgeMusic !== 'string') {
+      currentSurgeMusic.pause();
+    }
     document.body.style.cursor = 'auto';
     if (pauseMenu) {
       pauseMenu.style.display = 'flex';
@@ -4518,7 +4526,14 @@ function togglePause() {
   else {
     gamePaused = false;
     document.body.style.cursor = 'none';
-    if (gameSettings.musicEnabled) currentBGM.play().catch(() => { });
+    if (gameSettings.musicEnabled) {
+      if (typeof isNormalBgmAllowed === 'function' && isNormalBgmAllowed()) {
+        currentBGM.play().catch(() => { });
+      }
+      if (typeof currentSurgeMusic !== 'undefined' && currentSurgeMusic !== null && typeof currentSurgeMusic !== 'string') {
+        currentSurgeMusic.play().catch(() => { });
+      }
+    }
     if (pauseMenu) pauseMenu.style.display = 'none';
   }
 }

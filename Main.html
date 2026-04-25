@@ -39,17 +39,41 @@
     <!-- 6-LAYER HYPER PARALLAX STAR FIELD (back → front) -->
     <!-- 6-LAYER HYPER PARALLAX STAR FIELD (back → front) -->
     <!-- Layer 6 (Farthest): Shifted left, zoomed in -->
-    <div class="star-layer" style="--speed:16s; --opacity:0.75; --scale:0.92; --offset-x:-5%; --bg-size:120%;"><div class="bg-tile"></div><div class="bg-tile flipped"></div><div class="bg-tile"></div></div>
+    <div class="star-layer" style="--speed:10s; --opacity:0.75; --scale:0.92; --offset-x:-5%; --bg-size:120%;">
+      <div class="bg-tile"></div>
+      <div class="bg-tile flipped"></div>
+      <div class="bg-tile"></div>
+    </div>
     <!-- Layer 5: Shifted right, normal zoom -->
-    <div class="star-layer" style="--speed:11s; --opacity:0.6; --scale:0.95; --offset-x:3%; --bg-size:cover;"><div class="bg-tile"></div><div class="bg-tile flipped"></div><div class="bg-tile"></div></div>
+    <div class="star-layer" style="--speed:5s; --opacity:0.6; --scale:0.95; --offset-x:3%; --bg-size:cover;">
+      <div class="bg-tile"></div>
+      <div class="bg-tile flipped"></div>
+      <div class="bg-tile"></div>
+    </div>
     <!-- Layer 4: Center, zoomed out -->
-    <div class="star-layer" style="--speed:7.5s; --opacity:0.45; --scale:0.97; --offset-x:0%; --bg-size:80%;"><div class="bg-tile"></div><div class="bg-tile flipped"></div><div class="bg-tile"></div></div>
+    <div class="star-layer" style="--speed:3s; --opacity:0.45; --scale:0.97; --offset-x:0%; --bg-size:80%;">
+      <div class="bg-tile"></div>
+      <div class="bg-tile flipped"></div>
+      <div class="bg-tile"></div>
+    </div>
     <!-- Layer 3: Shifted left, zoomed way in -->
-    <div class="star-layer" style="--speed:5s; --opacity:0.3; --scale:1.0; --offset-x:-2%; --bg-size:150%;"><div class="bg-tile"></div><div class="bg-tile flipped"></div><div class="bg-tile"></div></div>
+    <div class="star-layer" style="--speed:1s; --opacity:0.3; --scale:1.0; --offset-x:-2%; --bg-size:150%;">
+      <div class="bg-tile"></div>
+      <div class="bg-tile flipped"></div>
+      <div class="bg-tile"></div>
+    </div>
     <!-- Layer 2: Shifted right, zoomed out -->
-    <div class="star-layer" style="--speed:3.2s; --opacity:0.2; --scale:1.03; --offset-x:6%; --bg-size:90%;"><div class="bg-tile"></div><div class="bg-tile flipped"></div><div class="bg-tile"></div></div>
+    <div class="star-layer" style="--speed:0.8s; --opacity:0.2; --scale:1.03; --offset-x:6%; --bg-size:90%;">
+      <div class="bg-tile"></div>
+      <div class="bg-tile flipped"></div>
+      <div class="bg-tile"></div>
+    </div>
     <!-- Layer 1 (Closest): Center, normal zoom, fastest -->
-    <div class="star-layer" style="--speed:1.8s; --opacity:0.12; --scale:1.06; --offset-x:0%; --bg-size:cover;"><div class="bg-tile"></div><div class="bg-tile flipped"></div><div class="bg-tile"></div></div>
+    <div class="star-layer" style="--speed:0.4s; --opacity:0.12; --scale:1.06; --offset-x:0%; --bg-size:cover;">
+      <div class="bg-tile"></div>
+      <div class="bg-tile flipped"></div>
+      <div class="bg-tile"></div>
+    </div>
 
     <!-- Dynamic Breathing Vignette -->
     <div class="menu-vignette"></div>
@@ -81,7 +105,8 @@
 
     <!-- Fullscreen Button (Bottom Left) -->
     <div id="fullscreenBtn" data-tooltip="Fullscreen">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
         <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
       </svg>
     </div>
@@ -226,7 +251,7 @@
     <div class="pause-panel-angled">
       <div class="pause-content-unskewed">
         <h2 class="pause-title">PAUSE</h2>
-        
+
         <div class="pause-options">
           <div class="pause-option-item">
             <label>MUSIC VOLUME</label>

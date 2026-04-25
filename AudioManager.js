@@ -615,6 +615,18 @@ function crossfadeToGameOver() {
   }, 1000 / 30);
 }
 
+function isNormalBgmAllowed() {
+  if (typeof game === 'undefined') return true;
+  if (game.surgePhase >= 1) return false;
+  if (game.surgeSchedulerState === 'BGM_FADE_OUT' || 
+      game.surgeSchedulerState === 'WARNING_PHASE' || 
+      game.surgeSchedulerState === 'EVENT_RUNNING' || 
+      game.surgeSchedulerState === 'POST_SURGE_WAIT') {
+    return false;
+  }
+  return true;
+}
+
 // === APPLY SETTINGS TO GAME ===
 function applySettings() {
   // Apply Main Menu BGM
@@ -634,9 +646,13 @@ function applySettings() {
     if (gameSettings.musicEnabled) {
       currentBGM.volume = BGM_VOLUME * (gameSettings.musicVolume / 100);
       if (gameStarted && !game.gameOver) {
-        // Only play if not paused
+        // Only play if not paused and allowed by surge state
         if (typeof gamePaused === 'undefined' || !gamePaused) {
-          currentBGM.play().catch(() => { });
+          if (isNormalBgmAllowed()) {
+            currentBGM.play().catch(() => { });
+          } else {
+            currentBGM.pause();
+          }
         } else {
           currentBGM.pause();
         }
